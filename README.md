@@ -36,6 +36,8 @@ plugin**.
   may require a matching release here. Pin the Harness version if you need
   stability.*
 - A relay-hub station running **hubrelay ≥ 0.3.0** (TOIP was added in 0.3.0).
+  `verifiedAgainst: hubrelay 0.3.1` — the release the cross-implementation suite
+  runs against.
 - Node.js ≥ 18 (the plugin uses `fetch`, `AbortSignal.timeout`, and `node:dgram`).
 
 ## Declared services (`inject`)
