@@ -79,7 +79,25 @@ test('apply registers the relayhub route and its adapter', () => {
 
   assert.deepEqual(record.adapters.providers, [PROVIDER])
   assert.equal(typeof record.adapters.adapter.resolveAuth, 'function')
-  assert.equal(typeof record.adapters.adapter.discoverModels, 'function')
+  assert.equal(typeof record.adapters.adapter.listModels, 'function')
+})
+
+test('the adapter survives the Host registration probe (providerRetryPolicy bug)', () => {
+  // 0.1.2 的启用失败根因：dsh-llm 的 prepareRoutes 在注册期**无条件**调用
+  // adapter.providerRetryPolicy(provider)，方法缺失 = TypeError = 激活失败。
+  // 这里按 Host 的真实调用顺序演练一遍（lib/index.js:1867 附近）。
+  const { ctx, record, config } = stubContext({
+    apiKey: 'rht_x',
+    models: [{ id: 'glm-5.2' }],
+  })
+  apply(ctx, config)
+  const adapter = record.adapters.adapter
+
+  const info = adapter.providerInfo(PROVIDER)
+  assert.equal(info.id, PROVIDER)
+  assert.equal(info.name, 'relay-hub')
+  assert.doesNotThrow(() => adapter.providerRetryPolicy(PROVIDER), 'providerRetryPolicy must exist: the Host calls it unconditionally at registration')
+  assert.doesNotThrow(() => adapter.imageRequestPricing(PROVIDER, 'glm-5.2'), 'imageRequestPricing must exist: the token meter resolves it per measurement')
 })
 
 test('resolveAuth carries the session token AND the plugin identity headers', () => {
@@ -111,13 +129,13 @@ test('resolveAuth explains itself when no join has happened yet', () => {
   )
 })
 
-test('discoverModels advertises exactly what the station granted', () => {
+test('listModels advertises exactly what the station granted', async () => {
   const { ctx, record, config } = stubContext({
     apiKey: 'rht_x',
     models: [{ id: 'glm-5.2', contextWindow: 1000000 }, { id: 'deepseek-v4-pro' }],
   })
   apply(ctx, config)
-  const models = record.adapters.adapter.discoverModels()
+  const models = await record.adapters.adapter.listModels()
   assert.deepEqual(models.map((m) => m.id), ['glm-5.2', 'deepseek-v4-pro'])
   assert.ok(models.every((m) => m.provider === PROVIDER))
   assert.ok(models.every((m) => Array.isArray(m.inputModalities)))
