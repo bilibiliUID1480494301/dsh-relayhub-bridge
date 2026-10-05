@@ -1,6 +1,6 @@
 {
   "name": "dsh-relayhub-bridge",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "DeepSeek Harness bridge to a relay-hub station: TOIP dynamic-password onboarding, LAN discovery, and per-plugin log accounting",
   "keywords": [
     "dsh-plugin",

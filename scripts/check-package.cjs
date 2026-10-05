@@ -39,6 +39,25 @@ check(
 )
 check(pkg.type === 'module', 'package is ESM (type: module)')
 check(typeof pkg.version === 'string' && pkg.version.length > 0, 'version is set')
+
+// The Host half reports its own version in the identity header, and the client
+// half sends it in the join payload. A drift between the manifest and those
+// constants ships a wrong version to the station, which is invisible until
+// someone reads the logs -- so it is asserted here.
+const indexSource = readFileSync(join(root, 'lib', 'index.js'), 'utf8')
+const declaredVersion = /export const PLUGIN_VERSION = '([^']+)'/.exec(indexSource)
+check(
+  declaredVersion !== null && declaredVersion[1] === pkg.version,
+  'lib/index.js PLUGIN_VERSION matches package.json version',
+  `manifest ${pkg.version} vs index ${declaredVersion ? declaredVersion[1] : 'missing'}`,
+)
+const clientSourceForVersion = readFileSync(join(root, 'lib', 'client.js'), 'utf8')
+const clientVersion = /const PLUGIN_VERSION = '([^']+)'/.exec(clientSourceForVersion)
+check(
+  clientVersion !== null && clientVersion[1] === pkg.version,
+  'lib/client.js PLUGIN_VERSION matches package.json version',
+  `manifest ${pkg.version} vs client ${clientVersion ? clientVersion[1] : 'missing'}`,
+)
 check(
   Array.isArray(pkg.keywords) && pkg.keywords.includes('dsh-plugin'),
   'keywords include dsh-plugin',

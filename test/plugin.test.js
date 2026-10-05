@@ -180,7 +180,9 @@ test('joinStationWith produces the provider configuration from a live station', 
       const sent = JSON.parse(body)
       // Assert the station-side contract from the wire, not from our own code.
       assert.equal(sent.plugin, PLUGIN_ID)
-      assert.equal(sent.plugin_version, '0.1.0')
+      // Compare against the exported constant rather than a literal: a hardcoded
+      // version here only breaks on every release and proves nothing extra.
+      assert.equal(sent.plugin_version, PLUGIN_VERSION)
       assert.equal(sent.ticket, 'rhe_ticket')
       res.writeHead(200, { 'content-type': 'application/json' })
       res.end(
