@@ -7,6 +7,13 @@ node_modules/
 coverage/
 .nyc_output/
 
+# lockfiles: the plugin has no reproducible install of its own (peer deps come
+# from the DSH profile), and a stale lock would ship an install graph we cannot
+# verify. pnpm resolves the published package at install time instead.
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
 # editor / OS noise
 .DS_Store
 Thumbs.db

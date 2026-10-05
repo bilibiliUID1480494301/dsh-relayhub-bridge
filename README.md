@@ -94,7 +94,18 @@ hubrelay toip ticket --name dsh-laptop --plugins dsh-relayhub-bridge
 
 ### 2. From the plugin
 
-Point it at the station and hand it either credential:
+Settings → **relay-hub** gives you the whole flow in the UI: paste the station
+address, click **Check station** to confirm TOIP is offered, paste the current
+6-digit code (or an enrollment ticket), and press **Join station**. The page then
+shows which station you are on, how many models were registered, and a
+**Disconnect** action that clears the stored token.
+
+Under the hood that page performs the same join and writes the result
+(`baseURL`, `apiKey`, `stationID`, `models`) into this plugin's settings
+namespace — the same one the provider reads — so there is nothing else to
+configure by hand.
+
+The same join is also available programmatically:
 
 ```js
 // enrollment (first contact)
@@ -269,6 +280,16 @@ hubrelay toip ticket --name dsh-laptop --plugins dsh-relayhub-bridge
 
 ### 2. 插件侧
 
+设置页 → **relay-hub** 里可以走完整个流程：填中转站地址 → 点 **Check station**
+确认该站支持 TOIP → 填入当前 6 位口令（或一枚登记口令）→ 点 **Join station**。
+页面随后显示你在哪个站、注册进了几个模型，并提供 **Disconnect** 清掉已存的令牌。
+
+这个页面做的就是同一套接入，并把结果（`baseURL` / `apiKey` / `stationID` /
+`models`）写进本插件的 settings 命名空间——也就是 provider 读取的那一份，
+所以不需要再手工配任何东西。
+
+同样的接入也可以用代码调：
+
 ```js
 // 首接：用登记口令
 const joined = await bridge.join({
@@ -288,7 +309,7 @@ const again = await bridge.join({
 正好就是 provider 需要的四样东西：`baseURL`、`apiKey`、`stationID`、`models`
 （`baseURL` 一定以 `/v1` 结尾，理由见英文部分）。
 
-把它填进插件配置（就是 Harness 模型设置页编辑的那几个值），然后选模型即可。
+设置页会自动把它们写进配置；用代码调的话，自己把这四样填进插件配置即可。
 
 ### 3. 局域网自动发现
 

@@ -68,6 +68,72 @@ check(typeof main === 'string' && existsSync(join(root, main)), 'main entry exis
 const types = pkg.types || (pkg.exports && pkg.exports['.'] && pkg.exports['.'].types)
 check(typeof types === 'string' && existsSync(join(root, types)), 'types entry exists', String(types))
 
+// --- Client half ------------------------------------------------------------
+// A UI plugin ships a browser artifact beside the Host entry. The manifest
+// declares it under `dsh.client`, and it must be exported as `./client`.
+const client = pkg.dsh && pkg.dsh.client
+if (client === undefined) {
+  notes.push('  --   no dsh.client section (Host-only plugin)')
+} else {
+  check(typeof client === 'object', 'dsh.client is an object')
+  check(client.platform === 'web', 'dsh.client.platform is web', String(client.platform))
+  check(typeof client.immediately === 'boolean', 'dsh.client.immediately is a boolean')
+  check(Array.isArray(client.inject), 'dsh.client.inject is an array')
+  for (const entry of client.inject || []) {
+    check(
+      typeof entry === 'string' && entry.startsWith('@deepseek-ai/dsh-client-'),
+      'dsh.client.inject entries are Harness client package ids',
+      String(entry),
+    )
+  }
+  const clientExport = pkg.exports && pkg.exports['./client']
+  check(clientExport !== undefined, 'exports declares ./client')
+  const clientTypes = clientExport && clientExport.types
+  check(
+    typeof clientTypes === 'string' && existsSync(join(root, clientTypes)),
+    './client types entry exists (a dangling types path breaks consumers)',
+    String(clientTypes),
+  )
+  const clientEntry = clientExport && (clientExport.default || clientExport)
+  check(
+    typeof clientEntry === 'string' && existsSync(join(root, clientEntry)),
+    './client entry exists',
+    String(clientEntry),
+  )
+  if (typeof clientEntry === 'string' && existsSync(join(root, clientEntry))) {
+    const artifact = readFileSync(join(root, clientEntry), 'utf8')
+    // The browser loader owns module instantiation: the artifact must register
+    // itself rather than exporting an ES module.
+    check(
+      /window\.__ModuleLoader__\.load\(/.test(artifact),
+      'client artifact uses window.__ModuleLoader__.load',
+    )
+    check(
+      new RegExp(`id:\\s*['"]${pkg.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`).test(artifact),
+      'client module id equals the package name',
+    )
+    check(/factory\s*\(/.test(artifact), 'client artifact declares a factory')
+    check(/inject:\s*\[/.test(artifact), 'client module declares inject')
+    // Harness Client packages may be declared for activation ordering, but must
+    // never be require()d: they change without notice and a plain-JS plugin has
+    // no type check, and a throwing component blanks the slot entry.
+    check(
+      !/require\(\s*['"]@deepseek-ai\//.test(artifact),
+      'client artifact does not require() a Harness Client package',
+    )
+    const required = [...artifact.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1])
+    const external = new Set(required.filter((id) => !id.startsWith('.')))
+    const declaredExternal = new Set(client.external || [])
+    for (const id of external) {
+      check(
+        id === 'react' || declaredExternal.has(id),
+        `client external '${id}' is react or declared in dsh.client.external`,
+        id,
+      )
+    }
+  }
+}
+
 // --- files that must ship ---------------------------------------------------
 for (const required of ['README.md', 'LICENSE']) {
   check(existsSync(join(root, required)), `${required} exists`)
