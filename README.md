@@ -55,20 +55,25 @@ them is how plugins break on upgrade.
 
 ## Install
 
+Not yet published to npm, so install straight from the repository:
+
 ```bash
 # <profile> is your Harness profile name — e.g. desktop, web
-dsh plugin --profile <profile> add dsh-relayhub-bridge
+dsh plugin --profile <profile> add github:bilibiliUID1480494301/dsh-relayhub-bridge
 
 # concrete examples
-dsh plugin --profile desktop add dsh-relayhub-bridge
-dsh plugin --profile web add dsh-relayhub-bridge
+dsh plugin --profile desktop add github:bilibiliUID1480494301/dsh-relayhub-bridge
+dsh plugin --profile web add github:bilibiliUID1480494301/dsh-relayhub-bridge
 ```
 
-If the package is not on a registry you can install it from a checkout:
+From a local checkout:
 
 ```bash
-dsh plugin --profile <profile> add /path/to/dsh-relayhub-bridge
+dsh plugin --profile <profile> add /absolute/path/to/dsh-relayhub-bridge
 ```
+
+Once the package is on npm, the short form works too:
+`dsh plugin --profile <profile> add dsh-relayhub-bridge`.
 
 Verify it was picked up:
 
@@ -225,20 +230,25 @@ export const inject = ['llm']
 
 ## 安装
 
+尚未发布到 npm，因此直接从仓库安装：
+
 ```bash
 # <profile> 是你的 Harness profile 名，例如 desktop、web
-dsh plugin --profile <profile> add dsh-relayhub-bridge
+dsh plugin --profile <profile> add github:bilibiliUID1480494301/dsh-relayhub-bridge
 
 # 可直接复制的例子
-dsh plugin --profile desktop add dsh-relayhub-bridge
-dsh plugin --profile web add dsh-relayhub-bridge
+dsh plugin --profile desktop add github:bilibiliUID1480494301/dsh-relayhub-bridge
+dsh plugin --profile web add github:bilibiliUID1480494301/dsh-relayhub-bridge
 ```
 
-从源码目录安装：
+从本地目录安装（路径必须绝对）：
 
 ```bash
-dsh plugin --profile <profile> add /path/to/dsh-relayhub-bridge
+dsh plugin --profile <profile> add /absolute/path/to/dsh-relayhub-bridge
 ```
+
+发布到 npm 之后，短名写法同样可用：
+`dsh plugin --profile <profile> add dsh-relayhub-bridge`。
 
 自检：
 
