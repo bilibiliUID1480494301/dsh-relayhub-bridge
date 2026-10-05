@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Packaging contract (dsh.bundle.patch, dsh- prefix, no internal deps)
+        run: node scripts/check-package.cjs
+
+      # The protocol and plugin tests need @deepseek-ai/schemastery to import the
+      # plugin entry point. It is a peer dependency (the DSH profile provides it
+      # at runtime); CI installs it so the module can be loaded and asserted on.
+      - name: Install peer dependencies
+        run: npm install --no-save @deepseek-ai/schemastery@~3.18.4
+
+      - name: Tests
+        run: node --test test/
+
+  # The cross-implementation suite proves this plugin interoperates with a real
+  # relay-hub station (TOTP agreement, join, per-plugin log accounting). It is a
+  # separate job because it installs the station from PyPI; a station outage must
+  # not look like a plugin bug.
+  interop:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the relay-hub station (hubrelay)
+        run: pip install 'hubrelay>=0.3.1'
+      - name: Locate the station interpreter for the test
+        run: echo "RELAYHUB_PYTHON=$(which python)" >> "$GITHUB_ENV"
+      - name: Install peer dependencies
+        run: npm install --no-save @deepseek-ai/schemastery@~3.18.4
+      - name: Cross-implementation tests
+        run: node --test test/e2e.test.js

@@ -1,0 +1,15 @@
+# dependencies (peer deps are provided by the DSH profile; local links are only
+# for running the tests on a dev machine)
+node_modules/
+
+# build / test artifacts
+*.tgz
+coverage/
+.nyc_output/
+
+# editor / OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

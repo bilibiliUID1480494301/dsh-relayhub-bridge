@@ -1,0 +1,14 @@
+# dsh bundle patch for dsh-relayhub-bridge.
+#
+# Applied as a profile layer in `dsh.profile.bundles` order. This file is what
+# makes the package discoverable as a DeepSeek Harness plugin: the community
+# registry scans `topic:dsh-plugin` repositories, reads `package.json`, and
+# requires a `dsh.bundle.patch` pointing at exactly this file.
+#
+# It only INSERTS its own row. The bridge does not repoint an existing seam --
+# it adds the `relayhub` provider route next to whatever providers the profile
+# already has, so installing it never changes how an existing provider behaves,
+# and removing it leaves the session working exactly as before.
+- insert:
+    - id: relayhub-bridge
+      name: 'dsh-relayhub-bridge'
