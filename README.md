@@ -27,8 +27,8 @@ plugin**.
 ## Requirements
 
 - DeepSeek Harness **0.2.0-rc.2 or newer, within the 0.2.x line**.
-  `verifiedAgainst: 0.2.0-rc.2` — the exact build this plugin was developed and
-  tested against (declared peer ranges: `@deepseek-ai/cordis ~4.0.4`,
+  `verifiedAgainst: 0.2.0-rc.2` (the exact build this plugin was developed and
+  tested against; the peer range it declares is `@deepseek-ai/cordis ~4.0.4`,
   `@deepseek-ai/schemastery ~3.18.4`).
   *This plugin is written against the 0.2.x plugin contract
   (`ctx.llm.registerAdapter` / `registerConfigurableProviders`, `dsh.bundle.patch`).
@@ -36,8 +36,8 @@ plugin**.
   may require a matching release here. Pin the Harness version if you need
   stability.*
 - A relay-hub station running **hubrelay ≥ 0.3.0** (TOIP was added in 0.3.0).
-  `verifiedAgainst: hubrelay 0.3.1` — the release the cross-implementation suite
-  runs against.
+  The cross-implementation suite in this repo runs against
+  `verifiedAgainst: hubrelay 0.3.1`.
 - Node.js ≥ 18 (the plugin uses `fetch`, `AbortSignal.timeout`, and `node:dgram`).
 
 ## Declared services (`inject`)
@@ -56,10 +56,15 @@ them is how plugins break on upgrade.
 ## Install
 
 ```bash
+# <profile> is your Harness profile name — e.g. desktop, web
 dsh plugin --profile <profile> add dsh-relayhub-bridge
+
+# concrete examples
+dsh plugin --profile desktop add dsh-relayhub-bridge
+dsh plugin --profile web add dsh-relayhub-bridge
 ```
 
-Or install from a checkout:
+If the package is not on a registry you can install it from a checkout:
 
 ```bash
 dsh plugin --profile <profile> add /path/to/dsh-relayhub-bridge
@@ -221,7 +226,18 @@ export const inject = ['llm']
 ## 安装
 
 ```bash
+# <profile> 是你的 Harness profile 名，例如 desktop、web
 dsh plugin --profile <profile> add dsh-relayhub-bridge
+
+# 可直接复制的例子
+dsh plugin --profile desktop add dsh-relayhub-bridge
+dsh plugin --profile web add dsh-relayhub-bridge
+```
+
+从源码目录安装：
+
+```bash
+dsh plugin --profile <profile> add /path/to/dsh-relayhub-bridge
 ```
 
 自检：
