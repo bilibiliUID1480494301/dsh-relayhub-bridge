@@ -231,3 +231,58 @@ test('secondsLeft stays inside the period', () => {
     assert.ok(left > 0 && left <= 30, `secondsLeft(${at}) = ${left}`)
   }
 })
+
+// ---------------------------------------------------------------- localization
+
+test('both language tables carry the same keys', () => {
+  // A key present in one table and missing from the other renders a bare key
+  // name to the user, which is worse than English.
+  const { module } = loadClient()
+  const copy = module.__internals.COPY
+  assert.ok(copy, 'the client must expose COPY for parity testing')
+
+  const en = Object.keys(copy.en).sort()
+  const zh = Object.keys(copy.zh).sort()
+  assert.ok(en.length > 20, `expected a real table, got ${en.length} keys`)
+  assert.deepEqual(zh, en, 'zh and en must define exactly the same keys')
+})
+
+test('the Chinese table is actually Chinese and the English one is not', () => {
+  const { module } = loadClient()
+  const copy = module.__internals.COPY
+  const han = /[\u4e00-\u9fff]/
+  const zhValues = Object.values(copy.zh).filter((v) => typeof v === 'string')
+  const enValues = Object.values(copy.en).filter((v) => typeof v === 'string')
+  assert.ok(
+    zhValues.filter((v) => han.test(v)).length >= zhValues.length - 3,
+    'almost every Chinese string should contain Han characters',
+  )
+  assert.equal(enValues.filter((v) => han.test(v)).length, 0, 'English strings must be pure ASCII text')
+})
+
+test('no untranslated English literals remain in the component', () => {
+  // Guards the most likely regression when editing: adding a new label as a
+  // literal instead of a COPY key, which silently ships English to zh users.
+  const start = source.indexOf('function RelayhubSettings(props) {')
+  assert.ok(start > 0, 'the component must exist')
+  const component = source.slice(start)
+  const literals = [...component.matchAll(/'([A-Z][A-Za-z ,()'/\\-]{6,})'/g)].map((m) => m[1])
+  assert.deepEqual(literals, [], `hardcoded UI strings found: ${literals.join(' | ')}`)
+})
+
+test('language detection maps locale tags to a table', () => {
+  const { module } = loadClient()
+  const pick = module.__internals.pickLang
+  for (const tag of ['zh', 'zh-CN', 'zh-Hans', 'zh_TW', 'ZH-hant']) {
+    assert.equal(pick(tag), 'zh', `${tag} should select Chinese`)
+  }
+  for (const tag of ['en', 'en-US', 'de', '', null, undefined, 'fr-FR']) {
+    assert.equal(pick(tag), 'en', `${tag} should fall back to English`)
+  }
+})
+
+test('the slot label is localized, not hardcoded', () => {
+  const start = source.indexOf("ctx.slots.inject('settings.section'")
+  const slice = source.slice(start, start + 500)
+  assert.ok(/label:\s*\(\)\s*=>/.test(slice), 'label must be a thunk so it can follow the locale')
+})
