@@ -27,6 +27,9 @@ plugin**.
 ## Requirements
 
 - DeepSeek Harness **0.2.0-rc.2 or newer, within the 0.2.x line**.
+  `verifiedAgainst: 0.2.0-rc.2` — the exact build this plugin was developed and
+  tested against (declared peer ranges: `@deepseek-ai/cordis ~4.0.4`,
+  `@deepseek-ai/schemastery ~3.18.4`).
   *This plugin is written against the 0.2.x plugin contract
   (`ctx.llm.registerAdapter` / `registerConfigurableProviders`, `dsh.bundle.patch`).
   Harness is in developer preview and its plugin API can change; a bump to 0.3.x
