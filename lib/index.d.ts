@@ -154,3 +154,6 @@ export interface StreamChunk {
     | 'block-end' | 'usage' | 'finish'
   [key: string]: unknown
 }
+
+/** E2E envelope mode for the Messages lane (config `e2e`, default 'auto'). */
+export type E2EMode = 'auto' | 'off' | 'require'

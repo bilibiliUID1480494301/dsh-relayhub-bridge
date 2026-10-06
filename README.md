@@ -171,6 +171,23 @@ still works: its complete message object is projected as if it had streamed.
 DeepSeek DSML markup that leaks into content (`<｜DSML｜…>`) is scrubbed
 in-stream.
 
+## E2E envelope encryption (0.3.0)
+
+Every Messages request can be sealed into an `x25519-hkdf-sha256-aesgcm`
+envelope when the station offers one. The config knob is `e2e`:
+
+- `auto` (default) — probe `GET /v1/e2e/params` once per turn; a station that
+  answers seals every request, a station that answers 404/501 stays plaintext.
+- `off` — never probe, never seal.
+- `require` — refuse to send plaintext: if the station serves no envelope
+  params, the turn fails with an explicit error instead of downgrading.
+
+Key rotation is handled invisibly: a 400 whose message names `key_id`
+triggers one params refresh and one re-seal. Sealing needs only node:crypto on
+this side (X25519 + HKDF-SHA256 + AES-256-GCM, zero new dependencies) and the
+`hubrelay[e2e]` extra on the station. The envelope is bound to the session
+token — the same ciphertext cannot be opened with a different credential.
+
 ## Per-plugin logs on the station
 
 With the bridge in place, the station keeps a per-plugin view:
@@ -350,6 +367,21 @@ const stations = await bridge.discover({ timeoutMs: 3000 })
 `max-tokens`，让宿主裁剪该调用而不是无限循环。忽略 `stream:true` 的中转站也
 能用：完整 message 对象按流式等价投影。泄漏进正文的 DeepSeek DSML 标记
 （`<｜DSML｜…>`）在流内被清洗。
+
+## E2E 信封加密（0.3.0）
+
+站点提供信封参数时，每条 Messages 请求都可以封进 `x25519-hkdf-sha256-aesgcm`
+信封。配置项 `e2e` 三档：
+
+- `auto`（默认）——每轮先探一次 `GET /v1/e2e/params`：站点支持就每个请求封
+  信封，404/501 就照旧明文。
+- `off`——不探不封。
+- `require`——拒绝明文：站点没有信封参数时直接报错，绝不降级。
+
+站点轮换 X25519 身份时自动无感换钥匙：400 且消息里带 `key_id` 就重拉一次
+参数、重封一次。封包只需要本侧 node:crypto（X25519 + HKDF-SHA256 +
+AES-256-GCM，零新依赖），站点侧装 `hubrelay[e2e]`。信封与会话令牌绑定——
+同一份密文换个凭证就解不开。
 
 ## 中转站上的插件日志
 

@@ -41,6 +41,14 @@ async function startStation(behavior) {
     req.on('end', () => {
       let body = {}
       try { body = JSON.parse(raw) } catch { /* the adapter always sends JSON */ }
+      // Route by path: 0.3.0 probes GET /v1/e2e/params before the turn; only
+      // the Messages lane reaches the fixture behavior (anything else is a
+      // plain 404, like a real station without that route).
+      if ((req.url ?? '').split('?')[0] !== '/v1/messages') {
+        res.writeHead(404, { 'content-type': 'application/json' })
+        res.end(JSON.stringify({ ok: false, error: 'no route' }))
+        return
+      }
       calls.push(body)
       behavior(req, res, body)
     })
