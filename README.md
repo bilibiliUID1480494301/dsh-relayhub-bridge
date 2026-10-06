@@ -155,6 +155,22 @@ the reply carries the TOIP capability block — so one broadcast yields both the
 address and whether it can be joined with a code. Broadcast does not cross
 subnets; for a remote station, supply the URL.
 
+## Model serving (0.2.0)
+
+Since 0.2.0 the adapter implements the full call path, not just registration:
+`resolveModel` (conservative fallback for unknown ids), `prepareCall` (binds
+model metadata + dispatch closure), and `stream` (one abortable
+`POST /v1/messages` with `stream:true`). The Anthropic SSE body is projected
+into harness StreamChunks — text, reasoning, and tool-call blocks under the
+disjoint-count usage rule — and every failure mode (HTTP error envelope,
+in-stream error event, a cut before `message_stop`, an empty answer,
+unparseable tool JSON) maps onto a `finish` chunk the harness understands.
+Tool JSON that never parses is downgraded to `max-tokens`, so the harness
+prunes the call instead of looping. A station that ignores `stream:true`
+still works: its complete message object is projected as if it had streamed.
+DeepSeek DSML markup that leaks into content (`<｜DSML｜…>`) is scrubbed
+in-stream.
+
 ## Per-plugin logs on the station
 
 With the bridge in place, the station keeps a per-plugin view:
@@ -322,6 +338,18 @@ const stations = await bridge.discover({ timeoutMs: 3000 })
 广播的是中转站会应答的 `RELAYHUB-DISCOVER-v2` 探测包，应答里带 TOIP 能力块，
 所以一次广播同时拿到「地址」与「能不能用口令接入」。广播不跨网段；
 远端站点请直接填网址。
+
+## 模型服务（0.2.0）
+
+从 0.2.0 起，适配器实现了完整调用路径，而不仅是注册：`resolveModel`（未知
+模型 id 走保守兜底）、`prepareCall`（绑定模型元数据 + 派发闭包）、`stream`
+（一次可中断的 `POST /v1/messages`，`stream:true`）。Anthropic SSE 报文被投影
+为宿主 StreamChunk——文本、思考、工具调用块，用量遵循不相交计数规则——且每一
+种失败（HTTP 错误封套、流内 error 事件、`message_stop` 前断流、空回答、解析
+不了的工具 JSON）都映射为宿主认识的 `finish` 块。解析不了的工具参数降级为
+`max-tokens`，让宿主裁剪该调用而不是无限循环。忽略 `stream:true` 的中转站也
+能用：完整 message 对象按流式等价投影。泄漏进正文的 DeepSeek DSML 标记
+（`<｜DSML｜…>`）在流内被清洗。
 
 ## 中转站上的插件日志
 

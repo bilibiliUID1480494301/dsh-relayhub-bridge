@@ -121,3 +121,36 @@ export declare function totp(secret: string, atMs?: number): string
 
 /** Seconds until the current code rolls over. */
 export declare function secondsLeft(atMs?: number): number
+
+/**
+ * The adapter object `apply` registers for the `relayhub` route — the surface
+ * the Harness host consumes. 0.2.0 implements the full call path.
+ */
+export interface RelayhubAdapter {
+  providerInfo(provider: string): { id: string; name: string }
+  /** Called unconditionally at registration; return undefined for defaults. */
+  providerRetryPolicy(provider: string): undefined
+  imageRequestPricing(provider: string, model: string): undefined
+  listModels(): Promise<Array<{ provider: string; id: string; name: string; inputModalities: string[] }>>
+  resolveAuth(): { headers: Record<string, string> }
+  /** Unknown ids fall back to contextWindow 131072 / defaultMaxTokens 8192. */
+  resolveModel(provider: string, model: string): Promise<RelayModel & {
+    provider: string
+    name: string
+    inputModalities: string[]
+    context: { contextWindow: number }
+    defaultMaxTokens: number
+  }>
+  prepareCall(provider: string, model: string): Promise<{
+    model: Awaited<ReturnType<RelayhubAdapter['resolveModel']>>
+    stream: (options: Record<string, unknown>) => AsyncIterable<StreamChunk>
+  }>
+  stream(options: Record<string, unknown>): AsyncIterable<StreamChunk>
+}
+
+/** Harness StreamChunk (flat indexed block protocol). */
+export interface StreamChunk {
+  type: 'block-start' | 'text-delta' | 'reasoning-delta' | 'tool-call-delta'
+    | 'block-end' | 'usage' | 'finish'
+  [key: string]: unknown
+}
