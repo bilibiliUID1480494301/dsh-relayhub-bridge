@@ -11,6 +11,7 @@ plugin**.
 [![dsh-plugin](https://img.shields.io/badge/dsh--plugin-yes-blue)](https://github.com/topics/dsh-plugin)
 ![Python station](https://img.shields.io/badge/station-hubrelay%20%3E%3D%200.3.0-blue)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+[![dshbase install-tested](https://dshbase.com/badges/dsh-relayhub-bridge.svg)](https://dshbase.com/plugins/dsh-relayhub-bridge/)
 
 ## What it does
 
