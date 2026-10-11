@@ -56,6 +56,8 @@ them is how plugins break on upgrade.
 
 ## Install
 
+Published on npm: [dsh-relayhub-bridge](https://www.npmjs.com/package/dsh-relayhub-bridge) - `dsh plugin add dsh-relayhub-bridge` resolves it from the npm registry first.
+
 ```bash
 # <profile> is your Harness profile name — e.g. desktop, web
 dsh plugin --profile <profile> add dsh-relayhub-bridge
@@ -275,6 +277,8 @@ export const inject = ['llm']
 `node_modules` 里解析不到，依赖内部实现正是插件「一升级就坏」的原因。
 
 ## 安装
+
+已发布 npm：[dsh-relayhub-bridge](https://www.npmjs.com/package/dsh-relayhub-bridge) —— `dsh plugin add dsh-relayhub-bridge` 默认就走 npm registry。
 
 ```bash
 # <profile> 是你的 Harness profile 名，例如 desktop、web
